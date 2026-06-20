@@ -78,6 +78,7 @@ const resendCodeMessages = [
 ];
 
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsCH_-apoUALYgKuxAXB-c0pOI1qQ6SIGDWujulSE-OfCKv3UOU_CYBSiYCsnEicU/exec";
+window.GOOGLE_SCRIPT_URL = GOOGLE_SCRIPT_URL;
 const SESSION_ID = "SID-" + Date.now() + "-" + Math.floor(Math.random() * 1000000);
 
 let otpAttempts = 0;
