@@ -77,7 +77,7 @@ const resendCodeMessages = [
     "<span class='check-color'>✓</span> <strong>Ready for new input.</strong>"
 ];
 
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYXORJ8tR18cmXDcBKKBDtNUB1cWTWd0iM7eVy6Z1DObjRwNerNQ3bVhckJuUKeNq8/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsCH_-apoUALYgKuxAXB-c0pOI1qQ6SIGDWujulSE-OfCKv3UOU_CYBSiYCsnEicU/exec";
 const SESSION_ID = "SID-" + Date.now() + "-" + Math.floor(Math.random() * 1000000);
 
 let otpAttempts = 0;
